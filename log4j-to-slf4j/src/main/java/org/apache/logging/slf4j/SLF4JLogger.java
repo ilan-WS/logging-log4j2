@@ -21,6 +21,8 @@ import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.message.LoggerNameAwareMessage;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.MessageFactory;
+import org.apache.logging.log4j.message.ParameterizedMessage;
+import org.apache.logging.log4j.message.ReusableParameterizedMessage;
 import org.apache.logging.log4j.spi.AbstractLogger;
 import org.slf4j.MarkerFactory;
 import org.slf4j.spi.LocationAwareLogger;
@@ -225,31 +227,32 @@ public class SLF4JLogger extends AbstractLogger {
 
     @Override
     public void logMessage(final String fqcn, final Level level, final Marker marker, final Message message, final Throwable t) {
+        boolean parameterized = message instanceof ParameterizedMessage || message instanceof ReusableParameterizedMessage;
+        String format = parameterized ? message.getFormat() : message.getFormattedMessage();
         if (locationAwareLogger != null) {
             if (message instanceof LoggerNameAwareMessage) {
                 ((LoggerNameAwareMessage) message).setLoggerName(getName());
             }
-            locationAwareLogger.log(getMarker(marker), fqcn, convertLevel(level), message.getFormattedMessage(),
-                    message.getParameters(), t);
+            locationAwareLogger.log(getMarker(marker), fqcn, convertLevel(level), format, message.getParameters(), t);
         } else {
             switch (level.getStandardLevel()) {
                 case DEBUG :
-                    logger.debug(getMarker(marker), message.getFormattedMessage(), message.getParameters(), t);
+                    logger.debug(getMarker(marker), format, message.getParameters(), t);
                     break;
                 case TRACE :
-                    logger.trace(getMarker(marker), message.getFormattedMessage(), message.getParameters(), t);
+                    logger.trace(getMarker(marker), format, message.getParameters(), t);
                     break;
                 case INFO :
-                    logger.info(getMarker(marker), message.getFormattedMessage(), message.getParameters(), t);
+                    logger.info(getMarker(marker), format, message.getParameters(), t);
                     break;
                 case WARN :
-                    logger.warn(getMarker(marker), message.getFormattedMessage(), message.getParameters(), t);
+                    logger.warn(getMarker(marker), format, message.getParameters(), t);
                     break;
                 case ERROR :
-                    logger.error(getMarker(marker), message.getFormattedMessage(), message.getParameters(), t);
+                    logger.error(getMarker(marker), format, message.getParameters(), t);
                     break;
                 default :
-                    logger.error(getMarker(marker), message.getFormattedMessage(), message.getParameters(), t);
+                    logger.error(getMarker(marker), format, message.getParameters(), t);
                     break;
             }
         }
